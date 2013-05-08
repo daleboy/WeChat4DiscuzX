@@ -1,9 +1,9 @@
 <?php
 /**
- *	[公众微信智能云平台(cloud_wx.{})] (C)2013-2099 Powered by YangLin.
- * Author QQ:28945763  问题解答技术交流QQ群：294440459
- *	Version: 5.5       http://i.binguo.me
- *	Date: 2013-4-4 00:00
+ *	[公众微信智能云平台(cloud_wx.{})] (C)2013-2099 Powered by YangLin, QinSiwei
+ * Author QQ:28945763, 8150999  问题解答技术交流QQ群：294440459
+ *	Version: 5.5
+ *	Date: 2013-4-9 00:00
  */
 
 if(!defined('IN_DISCUZ')) {

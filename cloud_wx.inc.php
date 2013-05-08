@@ -1,9 +1,9 @@
 <?php
 /**
- *	[公众微信智能云平台(cloud_wx.{})] (C)2013-2099 Powered by YangLin.
- * Author QQ:28945763  问题解答技术交流QQ群：294440459
- *	Version: 5.5       http://i.binguo.me
- *	Date: 2013-4-4 00:00
+ *	[公众微信智能云平台(cloud_wx.{})] (C)2013-2099 Powered by YangLin, QinSiwei
+ * Author QQ:28945763, 8150999  问题解答技术交流QQ群：294440459
+ *	Version: 5.5
+ *	Date: 2013-4-9 00:00
  */
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
@@ -32,7 +32,7 @@ class wxapi {
 		if(!isset($_G['cache']['plugin'])){
 				loadcache('plugin');
 		}
-		$help = "输入命令 （空格）参数进行相应操作：\n @帖子 关键词 进行搜索\n @绑定 账号 密码 进行账号绑定\n @解绑 即可解除账号绑定\n @广播 内容 进行发布广播操作* \n @消息 查看收到的未读消息*\n@搜图 关键词 进行图片搜索 \n @听听 歌曲名 收听喜欢的音乐\n 直接发送图片即可将图片分享到本站 \n 带*号的需绑定账号，输入@帮助 返回本说明。";
+		$help = "输入命令 （空格）参数进行相应操作：\n @帖子 关键词 进行搜索\n @绑定 账号 密码 进行账号绑定\n @解绑 即可解除账号绑定\n @消息 查看收到的未读消息*\n@搜图 关键词 进行图片搜索 \n @听听 歌曲名 收听喜欢的音乐\n 直接发送图片即可将图片分享到本站 \n 带*号的需绑定账号，输入@帮助 返回本说明。";
 		$_set = $_G['cache']['plugin']['cloud_wx'];
 		$_set['GROUPS'] = (array)unserialize($_set['GROUPS']);
 		$_set['FORMS'] = (array)unserialize($_set['FORMS']);
@@ -107,16 +107,29 @@ class wxapi {
 								$msg	.= "  ";
 								$findme	=	trim(mb_substr($msg, 3, -1, 'utf-8'));
 								if(!empty($findme)){
-									$url	=	"http://open.binguo.me/api.php?type=image&word=".$findme."&num=4";
+									$findme        =        iconv('utf-8','gbk',$findme);
+									$count        =        4; //每页显示几条结果
+									$url = "http://image.baidu.com/i?tn=baiduimagejson&ct=201326592&cl=2&lm=-1&st=-1&fm=result&fr=&sf=1&fmq=1349413075627_R&pv=&ic=0&nc=1&z=&se=1&showtab=0&fb=0&width=&height=&face=0&istype=2&word=" . $findme . "&rn=".$count."&pn=0";
 									$a = file_get_contents($url);
+									$a = iconv('gbk', 'utf-8', $a);
+									// now have some fun with the results...
 									$a		=	str_replace('<strong>','',$a);
 									$a		=	str_replace('<\/strong>','',$a);
-									$arr	=	json_decode($a,true);									
-									if(empty($arr)){
+									$a		=	str_replace('fromPageTitleEnc','title',$a);
+									$a		=	str_replace('fromPageTitle','intro',$a);				
+									$a		=	str_replace('objURL','pic',$a);
+									$a		=	str_replace('fromURL','url',$a);
+									
+									$a = json_decode($a, true);
+									$data = $a['data'];
+									unset($data[$count]); //去除最后一条空数组
+								
+									if(empty($data)){
 										$tpl->txt_msg($fu,$tu,"找不到相关结果哦，换个关键词试试。");
 										exit;
 									}
-									$tpl->pic_msg($fu,$tu,$arr);						
+									
+									$tpl->pic_msg($fu,$tu,$data);						
 								}else{
 									$tpl->txt_msg($fu,$tu,"请输入关键词");
 								}
@@ -206,6 +219,7 @@ class wxapi {
 						//text end
 					}elseif($type == 'image'){
 						//图片交换 增强互动
+						$tpl->txt_msg($fu,$tu,"分享成功！为照片添加文字描述吧，请发送：@描述 图片文字介绍内容");
 						if($_set['SHAREIMG'] == 2){
 							$user = C::t('#cloud_wx#cloud_wx')->get_info($fu);
 							if($_set['ONLY'] == 1){
@@ -216,7 +230,7 @@ class wxapi {
 							}
 							if(empty($user['uid'])) $user['uid'] = 0;
 							$pic	=	$postObj->PicUrl." ";
-							$tpl->txt_msg($fu,$tu,"分享成功！为照片添加文字描述吧，请发送：@描述 图片文字介绍内容",1);
+							//$tpl->txt_msg($fu,$tu,"分享成功！为照片添加文字描述吧，请发送：@描述 图片文字介绍内容");
 							C::t('#cloud_wx#cloud_wx_pic')->pub_pic($fu,$user['uid'],$pic);
 						}else{
 							$tpl->txt_msg($fu,$tu,'功能暂未开放！');
